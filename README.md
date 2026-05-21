@@ -1,6 +1,7 @@
 # AI Code Editor
 
 [![Live Demo](https://img.shields.io/badge/Demo-Run%20Online%20on%20Vercel-6366f1?style=for-the-badge&logo=vercel&logoColor=white)](https://ai-code-editor-client-af48xucpe-humaam-ahmeds-projects.vercel.app)
+>>>>>>> 5ad9217dca32075825d4d46805be7af74ff762d9
 
 An ultra-modern, high-fidelity, and feature-rich AI-powered code editing platform and desktop IDE. This repository showcases a production-grade, full-stack centerpiece integrating React, Tailwind CSS, Monaco Editor, React Flow, Zustand, Node.js/Express, and Electron.js.
 
