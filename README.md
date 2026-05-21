@@ -1,11 +1,19 @@
 # AI Code Editor
 
+<<<<<<< HEAD
+[![Live Demo](https://img.shields.io/badge/Demo-Run%20Online%20on%20Vercel-6366f1?style=for-the-badge&logo=vercel&logoColor=white)](https://ai-code-editor-client-af48xucpe-humaam-ahmeds-projects.vercel.app)
+=======
 [![Live Demo](ai-code-editor-client-af48xucpe-humaam-ahmeds-projects.vercel.app)
+>>>>>>> 5ad9217dca32075825d4d46805be7af74ff762d9
 
 An ultra-modern, high-fidelity, and feature-rich AI-powered code editing platform and desktop IDE. This repository showcases a production-grade, full-stack centerpiece integrating React, Tailwind CSS, Monaco Editor, React Flow, Zustand, Node.js/Express, and Electron.js.
 
 > [!TIP]
+<<<<<<< HEAD
+> **Live Demo Web App**: You can run the AI Code Editor directly in your browser on Vercel at [ai-code-editor-client-af48xucpe-humaam-ahmeds-projects.vercel.app](https://ai-code-editor-client-af48xucpe-humaam-ahmeds-projects.vercel.app)! Note that for AI features online, you simply bring your own Google AI Studio API Key, keeping your usage cost-free and 100% private.
+=======
 > **Live Demo Web App**: You can run the AI Code Editor directly in your browser on Vercel at [your-vercel-project-url.vercel.app](ai-code-editor-client-af48xucpe-humaam-ahmeds-projects.vercel.app)! Note that for AI features online, you simply bring your own Google AI Studio API Key, keeping your usage cost-free and 100% private.
+>>>>>>> 5ad9217dca32075825d4d46805be7af74ff762d9
 
 Designed with a secure **Bring Your Own Key (BYOK)** architecture, this IDE operates with **zero remote backend AI costs** by validating and caching credentials strictly client-side via browser `localStorage` and routing streaming requests through a local CORS-free middleware server.
 
