@@ -1,0 +1,19 @@
+{
+  "name": "ai-code-editor-server",
+  "version": "1.0.0",
+  "description": "Express AI proxy server for AI Code Editor",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.22.0",
+    "@google/genai": "latest",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.47.1"
+  }
+}

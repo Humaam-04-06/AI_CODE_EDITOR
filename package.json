@@ -1,0 +1,57 @@
+{
+  "name": "ai-code-editor-root",
+  "version": "1.0.0",
+  "description": "Full-Stack AI Code Editor with Electron wrapper",
+  "main": "electron/main.js",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm install --workspace=client && npm install --workspace=server",
+    "dev:client": "npm run dev --workspace=client",
+    "dev:server": "npm run start --workspace=server",
+    "dev:electron": "electron .",
+    "dev": "concurrently --kill-others \"npm run dev:server\" \"npm run dev:client\" \"npm run dev:electron\"",
+    "dev:web": "concurrently --kill-others \"npm run dev:server\" \"npm run dev:client\"",
+    "build:client": "npm run build --workspace=client",
+    "build:server": "npm run build --workspace=server",
+    "dist": "npm run build:client && electron-builder"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron": "^30.0.1",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.1.8"
+  },
+  "build": {
+    "appId": "com.kairo.aicodeeditor",
+    "productName": "AICodeEditor",
+    "directories": {
+      "output": "dist_electron"
+    },
+    "files": [
+      "electron/**/*",
+      "client/dist/**/*",
+      "server/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.developer-tools"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Development"
+    }
+  }
+}

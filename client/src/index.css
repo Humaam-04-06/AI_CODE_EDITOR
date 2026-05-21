@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Define core theme custom variables */
+:root {
+  --bg-color: #1E1E1E;
+  --sidebar-color: #252526;
+  --navbar-color: #3C3C3C;
+  --active-tab-color: #1E1E1E;
+  --inactive-tab-color: #2D2D2D;
+  --border-color: #2D2D2D;
+  --accent-color: #569CD6;
+  --text-color: #D4D4D4;
+  --muted-color: #858585;
+}
+
+/* 1. Dark+ (Default) */
+.theme-dark-plus {
+  --bg-color: #1E1E1E;
+  --sidebar-color: #252526;
+  --navbar-color: #3C3C3C;
+  --active-tab-color: #1E1E1E;
+  --inactive-tab-color: #2D2D2D;
+  --border-color: #333333;
+  --accent-color: #569CD6;
+  --text-color: #D4D4D4;
+  --muted-color: #858585;
+}
+
+/* 2. One Dark Pro */
+.theme-one-dark-pro {
+  --bg-color: #282C34;
+  --sidebar-color: #21252B;
+  --navbar-color: #1E2227;
+  --active-tab-color: #282C34;
+  --inactive-tab-color: #21252B;
+  --border-color: #181A1F;
+  --accent-color: #E06C75;
+  --text-color: #ABB2BF;
+  --muted-color: #5C6370;
+}
+
+/* 3. Dracula */
+.theme-dracula {
+  --bg-color: #282A36;
+  --sidebar-color: #21222C;
+  --navbar-color: #191A21;
+  --active-tab-color: #282A36;
+  --inactive-tab-color: #21222C;
+  --border-color: #44475A;
+  --accent-color: #BD93F9;
+  --text-color: #F8F8F2;
+  --muted-color: #6272A4;
+}
+
+/* 4. Monokai */
+.theme-monokai {
+  --bg-color: #272822;
+  --sidebar-color: #1E1F1C;
+  --navbar-color: #141411;
+  --active-tab-color: #272822;
+  --inactive-tab-color: #1E1F1C;
+  --border-color: #3E3D32;
+  --accent-color: #A6E22E;
+  --text-color: #F8F8F2;
+  --muted-color: #75715E;
+}
+
+/* 5. Catppuccin Mocha */
+.theme-catppuccin {
+  --bg-color: #1E1E2E;
+  --sidebar-color: #181825;
+  --navbar-color: #11111B;
+  --active-tab-color: #1E1E2E;
+  --inactive-tab-color: #181825;
+  --border-color: #313244;
+  --accent-color: #CBA6F7;
+  --text-color: #CDD6F4;
+  --muted-color: #6C7086;
+}
+
+/* 6. Nord */
+.theme-nord {
+  --bg-color: #2E3440;
+  --sidebar-color: #242933;
+  --navbar-color: #1B1E23;
+  --active-tab-color: #2E3440;
+  --inactive-tab-color: #242933;
+  --border-color: #3B4252;
+  --accent-color: #88C0D0;
+  --text-color: #D8DEE9;
+  --muted-color: #4C566A;
+}
+
+/* 7. Solarized Dark */
+.theme-solarized-dark {
+  --bg-color: #002B36;
+  --sidebar-color: #00212B;
+  --navbar-color: #001F27;
+  --active-tab-color: #002B36;
+  --inactive-tab-color: #00212B;
+  --border-color: #073642;
+  --accent-color: #268BD2;
+  --text-color: #839496;
+  --muted-color: #586E75;
+}
+
+/* 8. GitHub Dark */
+.theme-github-dark {
+  --bg-color: #0D1117;
+  --sidebar-color: #161B22;
+  --navbar-color: #010409;
+  --active-tab-color: #0D1117;
+  --inactive-tab-color: #161B22;
+  --border-color: #30363D;
+  --accent-color: #58A6FF;
+  --text-color: #C9D1D9;
+  --muted-color: #8B949E;
+}
+
+/* Apply CSS variables across utility structures */
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Custom Scrollbars matching premium VS Code aesthetics */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--sidebar-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border: 2px solid var(--sidebar-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-color);
+}
+
+/* Custom Glassmorphism panel styling */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-panel-heavy {
+  background: rgba(10, 10, 15, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Node layout customizations for React Flow */
+.react-flow__node-default {
+  background: var(--sidebar-color) !important;
+  color: var(--text-color) !important;
+  border: 1.5px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 12px !important;
+  padding: 10px 14px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  transition: all 0.2s ease !important;
+}
+
+.react-flow__node-default:hover {
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+  transform: translateY(-2px);
+}
+
+.react-flow__edge-path {
+  stroke: var(--muted-color) !important;
+  stroke-width: 1.5 !important;
+}
+.react-flow__connection-path {
+  stroke: var(--accent-color) !important;
+}
+
+/* Shimmer animation for thinking state */
+@keyframes shimmer-loading {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+.animate-shimmer-loading {
+  animation: shimmer-loading 1.8s infinite ease-in-out;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 3s infinite ease-in-out;
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 8s infinite linear;
+}
