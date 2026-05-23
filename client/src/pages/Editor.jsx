@@ -9,6 +9,7 @@ import IntentMode from '../components/IntentMode/IntentMode';
 import ExplainMyCode from '../components/ExplainMyCode/ExplainMyCode';
 import DecisionMemory from '../components/DecisionMemory/DecisionMemory';
 import CommandPalette from '../components/CommandPalette/CommandPalette';
+import CodeReview from '../components/CodeReview/CodeReview';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Editor() {
@@ -26,6 +27,8 @@ export default function Editor() {
         return <ExplainMyCode />;
       case 'memory':
         return <DecisionMemory />;
+      case 'review':
+        return <CodeReview />;
       default:
         return null;
     }

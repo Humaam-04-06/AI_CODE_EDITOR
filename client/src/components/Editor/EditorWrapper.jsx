@@ -26,7 +26,12 @@ export default function EditorWrapper() {
   const updateActiveFileContent = useEditorStore(state => state.updateActiveFileContent);
   const getActiveFile = useEditorStore(state => state.getActiveFile);
 
+  // Linter & flow highlight integration
+  const diagnostics = useEditorStore(state => state.diagnostics);
+  const highlightedLine = useEditorStore(state => state.highlightedLine);
+
   const editorRef = useRef(null);
+  const monacoRef = useRef(null);
 
   const activeFile = useMemo(() => {
     return getActiveFile();
@@ -43,8 +48,39 @@ export default function EditorWrapper() {
     }
   }, [activeFile.content]);
 
+  // Focus and scroll when highlighted line changes
+  useEffect(() => {
+    if (highlightedLine && editorRef.current) {
+      const editor = editorRef.current;
+      editor.revealLineInCenter(highlightedLine);
+      editor.setPosition({ lineNumber: highlightedLine, column: 1 });
+      editor.focus();
+    }
+  }, [highlightedLine]);
+
+  // Bind custom diagnostics (squiggles) to Monaco Markers
+  useEffect(() => {
+    if (editorRef.current && monacoRef.current) {
+      const monaco = monacoRef.current;
+      const editor = editorRef.current;
+      const model = editor.getModel();
+      if (model) {
+        const markers = diagnostics.map(d => ({
+          startLineNumber: d.line,
+          startColumn: d.startCol || 1,
+          endLineNumber: d.line,
+          endColumn: d.endCol || 100,
+          message: d.message,
+          severity: d.severity === 'error' ? monaco.MarkerSeverity.Error : monaco.MarkerSeverity.Warning
+        }));
+        monaco.editor.setModelMarkers(model, "ai_linter", markers);
+      }
+    }
+  }, [diagnostics, activeFileId, activeFile.language]);
+
   const handleEditorDidMount = useCallback((editor, monaco) => {
     editorRef.current = editor;
+    monacoRef.current = monaco;
 
     // Dynamically define all our custom premium Monaco themes
     Object.entries(MONACO_THEMES).forEach(([themeName, config]) => {

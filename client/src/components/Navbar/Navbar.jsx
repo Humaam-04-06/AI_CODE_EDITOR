@@ -34,10 +34,38 @@ export default function Navbar() {
   const setRightPanelMode = useEditorStore(state => state.setRightPanelMode);
   const setValidated = useEditorStore(state => state.setValidated);
 
+  // Time Travel Snapshots
+  const historySnapshots = useEditorStore(state => state.historySnapshots);
+  const createSnapshot = useEditorStore(state => state.createSnapshot);
+  const restoreSnapshot = useEditorStore(state => state.restoreSnapshot);
+
   // Dropdown toggles
   const [activeMenu, setActiveMenu] = useState(null);
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
+  const [showTimeline, setShowTimeline] = useState(false);
+  const [activeSnapIndex, setActiveSnapIndex] = useState(0);
+
+  // Sync slider index when new snapshots are pushed
+  useEffect(() => {
+    if (historySnapshots.length > 0) {
+      setActiveSnapIndex(0);
+    }
+  }, [historySnapshots.length]);
+
+  const handleSliderChange = (idx) => {
+    setActiveSnapIndex(idx);
+    const snap = historySnapshots[idx];
+    if (snap) {
+      restoreSnapshot(snap.id);
+      setSaveStatus({ 
+        show: true, 
+        message: `Time-Traveled to: ${snap.timestamp} (${snap.description})`, 
+        type: 'success' 
+      });
+      setTimeout(() => setSaveStatus({ show: false, message: '', type: 'success' }), 2000);
+    }
+  };
 
   const fileMenuRef = useRef(null);
   const editMenuRef = useRef(null);
@@ -385,7 +413,8 @@ export default function Navbar() {
                   { id: 'chat', label: 'AI Chat Panel', icon: 'fa-robot text-teal-400' },
                   { id: 'intent', label: 'Intent Refactoring', icon: 'fa-bolt-lightning text-amber-400' },
                   { id: 'explain', label: 'Explain Logic Flow', icon: 'fa-diagram-project text-cyan-400' },
-                  { id: 'memory', label: 'Decision Memory', icon: 'fa-brain text-purple-400' }
+                  { id: 'memory', label: 'Decision Memory', icon: 'fa-brain text-purple-400' },
+                  { id: 'review', label: 'AI Diagnostics Review', icon: 'fa-square-check text-rose-400' }
                 ].map(p => (
                   <button
                     key={p.id}
@@ -553,8 +582,16 @@ export default function Navbar() {
         </div>
 
         {/* Navigation buttons */}
-        <button onClick={() => navigate('/history')} className="p-2 rounded-md hover:bg-white/5 transition flex items-center justify-center" style={{ color: 'var(--muted-color)' }} title="History">
+        <button 
+          onClick={() => setShowTimeline(!showTimeline)} 
+          className="p-2 rounded-md hover:bg-white/5 transition flex items-center justify-center relative" 
+          style={{ color: showTimeline ? 'var(--accent-color)' : 'var(--muted-color)' }} 
+          title="Time-Travel Timeline"
+        >
           <i className="fa-solid fa-clock-rotate-left text-xs" />
+          {historySnapshots.length > 0 && (
+            <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-indigo-500 animate-ping" />
+          )}
         </button>
         <button onClick={() => navigate('/settings')} className="p-2 rounded-md hover:bg-white/5 transition flex items-center justify-center" style={{ color: 'var(--muted-color)' }} title="Settings">
           <i className="fa-solid fa-gear text-xs" />
@@ -636,6 +673,66 @@ export default function Navbar() {
                 Close & Return
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Visual Time-Travel Slider Sub-Bar */}
+      {showTimeline && (
+        <div 
+          className="absolute left-0 right-0 top-10 h-9 z-20 flex items-center justify-between px-4 border-b animate-fade-in font-sans"
+          style={{ 
+            backgroundColor: 'rgba(26, 27, 38, 0.96)', 
+            borderColor: 'var(--border-color)',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(16px)',
+            color: 'var(--text-color)'
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <i className="fa-solid fa-history text-indigo-400 text-xs" />
+            <span className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Time Travel Timeline</span>
+          </div>
+
+          {historySnapshots.length === 0 ? (
+            <span className="text-[10px] text-gray-500 italic">No snapshots captured yet. AI optimizations auto-create snapshots!</span>
+          ) : (
+            <div className="flex items-center gap-4 flex-1 max-w-xl mx-8">
+              <input
+                type="range"
+                min="0"
+                max={historySnapshots.length - 1}
+                value={activeSnapIndex}
+                onChange={(e) => handleSliderChange(parseInt(e.target.value))}
+                className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              />
+              <div className="flex items-center gap-2 shrink-0 text-[10px]">
+                <span className="text-indigo-400 font-mono font-bold">[{historySnapshots[activeSnapIndex]?.timestamp}]</span>
+                <span className="text-gray-300 truncate max-w-[200px]" title={historySnapshots[activeSnapIndex]?.description}>
+                  {historySnapshots[activeSnapIndex]?.description}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                createSnapshot(`Backup: ${files.length} file(s)`);
+                setSaveStatus({ show: true, message: 'Snapshot captured successfully!', type: 'success' });
+                setTimeout(() => setSaveStatus({ show: false, message: '', type: 'success' }), 2000);
+              }}
+              className="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-[9px] text-gray-300 hover:text-white transition flex items-center gap-1 border border-white/5"
+              title="Save current state as snapshot"
+            >
+              <i className="fa-solid fa-camera text-[9px]" />
+              <span>Snapshot</span>
+            </button>
+            <button
+              onClick={() => setShowTimeline(false)}
+              className="p-1 text-gray-500 hover:text-gray-300 transition"
+            >
+              <i className="fa-solid fa-xmark text-xs" />
+            </button>
           </div>
         </div>
       )}

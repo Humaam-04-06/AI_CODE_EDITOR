@@ -1,7 +1,6 @@
 # AI Code Editor
 
 [![Live Demo](https://img.shields.io/badge/Demo-Run%20Online%20on%20Vercel-6366f1?style=for-the-badge&logo=vercel&logoColor=white)](https://ai-code-editor-client-af48xucpe-humaam-ahmeds-projects.vercel.app)
->>>>>>> 5ad9217dca32075825d4d46805be7af74ff762d9
 
 An ultra-modern, high-fidelity, and feature-rich AI-powered code editing platform and desktop IDE. This repository showcases a production-grade, full-stack centerpiece integrating React, Tailwind CSS, Monaco Editor, React Flow, Zustand, Node.js/Express, and Electron.js.
 
@@ -32,6 +31,11 @@ The editor is packed with professional features that bring a high-end, responsiv
     *   *Diamond Bullet Points*: Formatted lists rendering with glowing violet icons (`fa-solid fa-diamond`) for a sleek visual touch.
     *   *Glassmorphic Callout Cards*: Rich text blockquotes formatted as custom translucent advisory callout cards.
     *   *Thinking Shimmer Indicator*: A custom animated thinking state displaying technical tasks (e.g., "Calibrating neural attention...", "Defying computational gravity...").
+*   **Voice-to-Code Assistant ("Vocal Refactor")**: Renders a glowing, pulsing purple microphone inside your prompt bar. Uses native browser Speech Recognition APIs to transcribe spoken prompts into text in real-time.
+*   **Multi-Model "AI Arena" Split**: Toggle side-by-side terminal columns to compare streams from **Gemini 2.5 Pro (Precision)** and **Gemini 2.5 Flash (Speed)** concurrently, with a live metrics dashboard tracking Latency (ms), Speed (tokens/sec), and token counts.
+*   **AI Diagnostics Scorecard Dashboard**: Slides open a dedicated analysis drawer containing custom circular SVG progress gauges calculating Readability, Performance, and Security percentages. Click any static issue to locate it in Monaco, or hit **Quick Fix** to auto-apply optimized patches!
+*   **Time-Travel Snapshot Timeline**: A timeline scrub slider under the tab bar letting you click or drag back through workspace snapshots in real-time. Automatically saves backup restore points before executing any Quick Fixes.
+*   **Bidirectional Node Scroll-Linkage**: Selecting logical nodes in the flowchart outline or warning items in the auditor automatically scrolls Monaco and highlights the corresponding code line.
 *   **Intent Refactoring Engine**: Focuses your prompt changes on specific development pillars:
     *   🚀 *Performance*: Boost execution speeds and space complexity.
     *   🛡️ *Scalability*: Adapt structural components for high load.

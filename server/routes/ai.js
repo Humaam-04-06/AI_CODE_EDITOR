@@ -300,6 +300,7 @@ You must return ONLY a JSON block, no other text or explanation. The JSON schema
       "id": "node_id_1",
       "type": "default",
       "data": { "label": "Node Label describing code part" },
+      "line": 4,
       "position": { "x": 250, "y": 50 }
     }
   ],
@@ -318,6 +319,7 @@ You must return ONLY a JSON block, no other text or explanation. The JSON schema
 - Parse actual function declarations, conditions (if/else), and return paths into separate nodes.
 - Make sure positions are spaced out logically (e.g., node 1 at y:0, node 2 at y:150, node 3 at y:300) so nodes do not overlap.
 - Nodes should have clear labels.
+- Important: For each node, include a "line" property (1-indexed integer) indicating the start line number in the source code where this logic block begins.
 - Output ONLY the JSON block. Do not include markdown code ticks (\`\`\`) in your response, just the raw JSON.
 `;
 

@@ -321,9 +321,61 @@ export default function ChatPanel() {
   const clearChatHistory = useEditorStore(state => state.clearChatHistory);
   const addTokens = useEditorStore(state => state.addTokens);
 
+  // Arena selectors
+  const isArenaMode = useEditorStore(state => state.isArenaMode);
+  const setArenaMode = useEditorStore(state => state.setArenaMode);
+  const arenaResponses = useEditorStore(state => state.arenaResponses);
+  const setArenaResponses = useEditorStore(state => state.setArenaResponses);
+
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const chatEndRef = useRef(null);
+
+  // Web Speech API Voice Transcription
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.lang = 'en-US';
+
+      rec.onstart = () => {
+        setIsListening(true);
+      };
+
+      rec.onresult = (e) => {
+        const transcript = e.results[0][0].transcript;
+        setInput(prev => (prev ? prev + ' ' + transcript : transcript));
+      };
+
+      rec.onerror = (e) => {
+        console.error("Speech Recognition Error:", e);
+        setIsListening(false);
+      };
+
+      rec.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = rec;
+    }
+  }, []);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      alert("Voice input is not supported in this browser. Please try Google Chrome or Microsoft Edge!");
+      return;
+    }
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      recognitionRef.current.start();
+    }
+  };
 
   // Scroll to bottom on history updates
   useEffect(() => {
@@ -339,34 +391,123 @@ export default function ChatPanel() {
     setIsStreaming(true);
 
     const history = [...chatHistory, { role: 'user', content: text }];
-    
-    // Add placeholder assistant message for streaming tokens
-    addChatMessage('assistant', '');
 
-    try {
-      let tokenCounter = 0;
-      await streamChatCompletions({
-        provider,
-        apiKey,
-        messages: history,
-        memory: memoryCards,
-        onToken: (token) => {
-          tokenCounter++;
-          updateLastChatMessage(getLatestAssistantContent() + token);
-        },
-        onDone: () => {
-          setIsStreaming(false);
-          addTokens(tokenCounter);
-        },
-        onError: (err) => {
-          console.error(err);
-          updateLastChatMessage("⚠️ [Error]: " + (err.message || "Failed to communicate with LLM API."));
-          setIsStreaming(false);
-        }
+    if (isArenaMode) {
+      // 1. Initialize split response states
+      setArenaResponses({
+        pro: '',
+        flash: '',
+        proStats: { loading: true, latency: 0, speed: 0, tokens: 0 },
+        flashStats: { loading: true, latency: 0, speed: 0, tokens: 0 }
       });
-    } catch (e) {
-      console.error(e);
-      setIsStreaming(false);
+
+      // Place a placeholder assistant message in standard chat logs
+      addChatMessage('assistant', '🤖 Arena responses active. Side-by-side details shown below.');
+
+      const startTime = Date.now();
+      let proTokens = 0;
+      let flashTokens = 0;
+
+      try {
+        // Stream Flash (Speed model)
+        const flashPromise = streamChatCompletions({
+          provider: 'gemini-2.5-flash',
+          apiKey,
+          messages: history,
+          memory: memoryCards,
+          onToken: (token) => {
+            flashTokens++;
+            const elapsed = (Date.now() - startTime) / 1000;
+            const speed = elapsed > 0 ? (flashTokens / elapsed).toFixed(1) : 0;
+            setArenaResponses(prev => ({
+              ...prev,
+              flash: prev.flash + token,
+              flashStats: { loading: true, latency: Math.round(Date.now() - startTime), speed, tokens: flashTokens }
+            }));
+          },
+          onDone: () => {
+            setArenaResponses(prev => ({
+              ...prev,
+              flashStats: { ...prev.flashStats, loading: false }
+            }));
+          },
+          onError: (err) => {
+            setArenaResponses(prev => ({
+              ...prev,
+              flash: prev.flash + `\n⚠️ Error: ${err.message}`,
+              flashStats: { ...prev.flashStats, loading: false }
+            }));
+          }
+        });
+
+        // Stream Pro (Precision model)
+        const proPromise = streamChatCompletions({
+          provider: 'gemini-2.5-pro',
+          apiKey,
+          messages: history,
+          memory: memoryCards,
+          onToken: (token) => {
+            proTokens++;
+            const elapsed = (Date.now() - startTime) / 1000;
+            const speed = elapsed > 0 ? (proTokens / elapsed).toFixed(1) : 0;
+            setArenaResponses(prev => ({
+              ...prev,
+              pro: prev.pro + token,
+              proStats: { loading: true, latency: Math.round(Date.now() - startTime), speed, tokens: proTokens }
+            }));
+          },
+          onDone: () => {
+            setArenaResponses(prev => ({
+              ...prev,
+              proStats: { ...prev.proStats, loading: false }
+            }));
+          },
+          onError: (err) => {
+            setArenaResponses(prev => ({
+              ...prev,
+              pro: prev.pro + `\n⚠️ Error: ${err.message}`,
+              proStats: { ...prev.proStats, loading: false }
+            }));
+          }
+        });
+
+        Promise.all([flashPromise, proPromise]).finally(() => {
+          setIsStreaming(false);
+          addTokens(proTokens + flashTokens);
+        });
+
+      } catch (err) {
+        console.error("Arena Launch Error:", err);
+        setIsStreaming(false);
+      }
+    } else {
+      // Standard Single Chat Stream
+      addChatMessage('assistant', '');
+      try {
+        let tokenCounter = 0;
+        await streamChatCompletions({
+          provider,
+          apiKey,
+          messages: history,
+          memory: memoryCards,
+          onToken: (token) => {
+            tokenCounter++;
+            updateLastChatMessage(getLatestAssistantContent() + token);
+          },
+          onDone: () => {
+            setIsStreaming(false);
+            addTokens(tokenCounter);
+          },
+          onError: (err) => {
+            console.error(err);
+            updateLastChatMessage("⚠️ [Error]: " + (err.message || "Failed to communicate with LLM API."));
+            setIsStreaming(false);
+          }
+        });
+      } catch (e) {
+        console.error(e);
+        setIsStreaming(false);
+      }
     }
   };
 
@@ -431,15 +572,30 @@ export default function ChatPanel() {
             </div>
           </div>
         </div>
-        {chatHistory.length > 0 && (
-          <button 
-            onClick={clearChatHistory}
-            className="p-1.5 rounded-lg hover:bg-white/5 hover:text-rose-400 transition-all duration-200 flex items-center justify-center"
-            title="Clear Chat Logs"
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setArenaMode(!isArenaMode)}
+            className={`p-1.5 rounded-lg transition-all duration-200 flex items-center gap-1 text-[10px] ${
+              isArenaMode 
+                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' 
+                : 'hover:bg-white/5 text-gray-400 hover:text-white'
+            }`}
+            title="Toggle split Arena Mode (Gemini Pro vs Flash)"
           >
-            <i className="fa-regular fa-trash-can text-[11px]" />
+            <i className="fa-solid fa-square-poll-horizontal text-xs" />
+            <span className="hidden xs:inline font-bold">Arena</span>
           </button>
-        )}
+
+          {chatHistory.length > 0 && (
+            <button 
+              onClick={clearChatHistory}
+              className="p-1.5 rounded-lg hover:bg-white/5 hover:text-rose-400 transition-all duration-200 flex items-center justify-center text-gray-400"
+              title="Clear Chat Logs"
+            >
+              <i className="fa-regular fa-trash-can text-[11px]" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 2. Messages List */}
@@ -484,6 +640,100 @@ export default function ChatPanel() {
             <AnimatePresence initial={false}>
               {chatHistory.map((msg, index) => {
                 const isUser = msg.role === 'user';
+                const isLatestAssistant = !isUser && index === chatHistory.length - 1;
+
+                if (isArenaMode && isLatestAssistant) {
+                  return (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex flex-col w-full gap-4 mt-2"
+                    >
+                      <div className="flex gap-2.5 items-center select-none pl-1">
+                        <div className="h-6 w-6 rounded-lg bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/10">
+                          <i className="fa-solid fa-square-poll-horizontal text-[10px] text-white animate-pulse" />
+                        </div>
+                        <span className="font-extrabold text-[9px] text-purple-300 uppercase tracking-wider">Antigravity Dual AI Arena</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full select-text font-sans">
+                        {/* Gemini 2.5 Flash column */}
+                        <div className="rounded-2xl border border-emerald-500/20 bg-[#0a0d16]/95 p-4 shadow-xl relative overflow-hidden flex flex-col min-h-[300px]">
+                          <div className="absolute top-0 bottom-0 left-0 w-[2.5px] bg-[#10b981]" />
+                          <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-3 select-none">
+                            <div className="flex items-center gap-1.5">
+                              <i className="fa-solid fa-rocket text-[#10b981] text-xs" />
+                              <span className="font-extrabold text-[10px] text-white">Gemini 2.5 Flash</span>
+                              <span className="text-[8px] bg-emerald-500/10 text-emerald-400 font-bold px-1.5 py-0.5 rounded uppercase">Speed</span>
+                            </div>
+                            {arenaResponses.flashStats?.loading && <i className="fa-solid fa-spinner animate-spin text-[10px] text-[#10b981]" />}
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-1.5 mb-3 bg-white/[0.02] p-1.5 rounded-xl border border-white/5 font-mono text-[8.5px] text-gray-500 text-center select-none">
+                            <div>
+                              <div>Latency</div>
+                              <div className="text-[9.5px] text-white font-bold mt-0.5">{arenaResponses.flashStats?.latency || 0}ms</div>
+                            </div>
+                            <div>
+                              <div>Speed</div>
+                              <div className="text-[9.5px] text-emerald-400 font-bold mt-0.5">{arenaResponses.flashStats?.speed || 0} t/s</div>
+                            </div>
+                            <div>
+                              <div>Generated</div>
+                              <div className="text-[9.5px] text-white font-bold mt-0.5">{arenaResponses.flashStats?.tokens || 0} tok</div>
+                            </div>
+                          </div>
+
+                          <div className="flex-1 text-[11px] leading-relaxed text-gray-300">
+                            {arenaResponses.flashStats?.loading && !arenaResponses.flash ? (
+                              <QuantumLoader />
+                            ) : (
+                              <MarkdownMessage content={arenaResponses.flash || 'Initializing stream...'} />
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Gemini 2.5 Pro column */}
+                        <div className="rounded-2xl border border-blue-500/20 bg-[#0a0d16]/95 p-4 shadow-xl relative overflow-hidden flex flex-col min-h-[300px]">
+                          <div className="absolute top-0 bottom-0 left-0 w-[2.5px] bg-[#3b82f6]" />
+                          <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-3 select-none">
+                            <div className="flex items-center gap-1.5">
+                              <i className="fa-solid fa-brain text-[#3b82f6] text-xs" />
+                              <span className="font-extrabold text-[10px] text-white">Gemini 2.5 Pro</span>
+                              <span className="text-[8px] bg-blue-500/10 text-blue-400 font-bold px-1.5 py-0.5 rounded uppercase">Precision</span>
+                            </div>
+                            {arenaResponses.proStats?.loading && <i className="fa-solid fa-spinner animate-spin text-[10px] text-[#3b82f6]" />}
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-1.5 mb-3 bg-white/[0.02] p-1.5 rounded-xl border border-white/5 font-mono text-[8.5px] text-gray-500 text-center select-none">
+                            <div>
+                              <div>Latency</div>
+                              <div className="text-[9.5px] text-white font-bold mt-0.5">{arenaResponses.proStats?.latency || 0}ms</div>
+                            </div>
+                            <div>
+                              <div>Speed</div>
+                              <div className="text-[9.5px] text-blue-400 font-bold mt-0.5">{arenaResponses.proStats?.speed || 0} t/s</div>
+                            </div>
+                            <div>
+                              <div>Generated</div>
+                              <div className="text-[9.5px] text-white font-bold mt-0.5">{arenaResponses.proStats?.tokens || 0} tok</div>
+                            </div>
+                          </div>
+
+                          <div className="flex-1 text-[11px] leading-relaxed text-gray-300">
+                            {arenaResponses.proStats?.loading && !arenaResponses.pro ? (
+                              <QuantumLoader />
+                            ) : (
+                              <MarkdownMessage content={arenaResponses.pro || 'Initializing stream...'} />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                }
+
                 return (
                   <motion.div
                     key={index}
@@ -541,14 +791,32 @@ export default function ChatPanel() {
         className="p-3.5 border-t bg-[#080a12]/95 backdrop-blur-lg flex gap-2.5 shrink-0 select-none z-10"
         style={{ borderColor: 'var(--border-color)' }}
       >
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={isStreaming}
-          placeholder="Ask a coding question..."
-          className="flex-1 bg-[#101322] border border-white/5 rounded-2xl px-4 py-3 text-white text-[11.5px] placeholder-gray-500 focus:outline-none focus:border-purple-500/60 focus:ring-2 focus:ring-purple-500/10 transition-all duration-300 shadow-inner font-sans"
-        />
+        <div className="relative flex-1 flex items-center">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={isStreaming}
+            placeholder={isListening ? "🎙️ Listening natively (speak now)..." : "Ask a coding question..."}
+            className="w-full bg-[#101322] border border-white/5 rounded-2xl pl-4 pr-11 py-3 text-white text-[11.5px] placeholder-gray-500 focus:outline-none focus:border-purple-500/60 focus:ring-2 focus:ring-purple-500/10 transition-all duration-300 shadow-inner font-sans"
+          />
+          <button
+            type="button"
+            onClick={toggleListening}
+            className={`absolute right-3.5 p-1.5 rounded-xl transition duration-350 flex items-center justify-center ${
+              isListening 
+                ? 'text-rose-400 bg-rose-500/15 shadow-[0_0_15px_rgba(244,63,94,0.4)] animate-pulse' 
+                : 'text-gray-500 hover:text-purple-400 hover:bg-white/5'
+            }`}
+            title="Voice Command Input (Vocal Refactor)"
+          >
+            {isListening ? (
+              <i className="fa-solid fa-microphone-lines text-xs text-rose-400" />
+            ) : (
+              <i className="fa-solid fa-microphone text-xs" />
+            )}
+          </button>
+        </div>
         <button
           type="submit"
           disabled={isStreaming || !input.trim()}

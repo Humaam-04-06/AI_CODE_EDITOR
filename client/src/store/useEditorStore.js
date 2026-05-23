@@ -117,12 +117,20 @@ export const useEditorStore = create((set, get) => ({
   tokensUsed: parseInt(localStorage.getItem('tokens_used') || '0', 10),
 
   // 7. Dynamic Drawers View Mode Control
-  rightPanelMode: 'chat', // 'none' | 'chat' | 'intent' | 'explain' | 'memory'
+  rightPanelMode: 'chat', // 'none' | 'chat' | 'intent' | 'explain' | 'memory' | 'review'
   isProcessing: false,
 
   // 8. Intent Mode & React Flow caches
   intentResult: null, // { refactoredCode, explanation }
   flowData: null, // { nodes, edges }
+
+  // 9. Premium Expansion States
+  historySnapshots: JSON.parse(localStorage.getItem('history_snapshots')) || [],
+  isArenaMode: localStorage.getItem('is_arena_mode') === 'true',
+  arenaResponses: { pro: '', flash: '', proStats: null, flashStats: null },
+  diagnostics: [],
+  scorecard: JSON.parse(localStorage.getItem('code_scorecard')) || { readability: 0, performance: 0, security: 0, recommendations: [] },
+  highlightedLine: null,
 
   // --- ACTIONS ---
 
@@ -263,6 +271,46 @@ export const useEditorStore = create((set, get) => ({
   setProcessing: (isProcessing) => set({ isProcessing }),
   setIntentResult: (intentResult) => set({ intentResult }),
   setFlowData: (flowData) => set({ flowData }),
+
+  // Premium Actions
+  createSnapshot: (description) => {
+    const { files, activeFileId, historySnapshots } = get();
+    const newSnapshot = {
+      id: 'snap_' + Date.now(),
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      description,
+      files: JSON.parse(JSON.stringify(files)),
+      activeFileId
+    };
+    const updated = [newSnapshot, ...historySnapshots].slice(0, 10); // Keep max 10 snapshots
+    localStorage.setItem('history_snapshots', JSON.stringify(updated));
+    set({ historySnapshots: updated });
+  },
+  restoreSnapshot: (id) => {
+    const { historySnapshots } = get();
+    const snap = historySnapshots.find(s => s.id === id);
+    if (snap) {
+      localStorage.setItem('sandbox_files', JSON.stringify(snap.files));
+      localStorage.setItem('active_file_id', snap.activeFileId);
+      set({ files: snap.files, activeFileId: snap.activeFileId, intentResult: null });
+    }
+  },
+  setArenaMode: (isArenaMode) => {
+    localStorage.setItem('is_arena_mode', isArenaMode ? 'true' : 'false');
+    set({ isArenaMode });
+  },
+  setArenaResponses: (arenaResponses) => set({ arenaResponses }),
+  updateArenaResponses: (updater) => {
+    const current = get().arenaResponses;
+    const next = typeof updater === 'function' ? updater(current) : updater;
+    set({ arenaResponses: next });
+  },
+  setDiagnostics: (diagnostics) => set({ diagnostics }),
+  setScorecard: (scorecard) => {
+    localStorage.setItem('code_scorecard', JSON.stringify(scorecard));
+    set({ scorecard });
+  },
+  setHighlightedLine: (highlightedLine) => set({ highlightedLine }),
 
   // Helper selectors
   getActiveFile: () => {

@@ -9,6 +9,7 @@ export default function ExplainMyCode() {
   const flowData = useEditorStore(state => state.flowData);
   const setProcessing = useEditorStore(state => state.setProcessing);
   const setFlowData = useEditorStore(state => state.setFlowData);
+  const setHighlightedLine = useEditorStore(state => state.setHighlightedLine);
 
   const handleFetchFlowchart = async () => {
     if (isProcessing) return;
@@ -86,6 +87,12 @@ export default function ExplainMyCode() {
             <ReactFlow
               nodes={flowData.nodes}
               edges={flowData.edges}
+              onNodeClick={(event, node) => {
+                const line = node.line || node.data?.line;
+                if (line) {
+                  setHighlightedLine(line);
+                }
+              }}
               fitView
               className="font-mono text-xs"
             >
