@@ -1,11 +1,11 @@
 # AI Code Editor
 
-[![Live Demo](https://img.shields.io/badge/Demo-Run%20Online%20on%20Vercel-6366f1?style=for-the-badge&logo=vercel&logoColor=white)](ai-code-editor-client.vercel.app)
+[![Live Demo](https://img.shields.io/badge/Demo-Run%20Online%20on%20Vercel-6366f1?style=for-the-badge&logo=vercel&logoColor=white)](https://ai-code-editor-client.vercel.app)
 
 An ultra-modern, high-fidelity, and feature-rich AI-powered code editing platform and desktop IDE. This repository showcases a production-grade, full-stack centerpiece integrating React, Tailwind CSS, Monaco Editor, React Flow, Zustand, Node.js/Express, and Electron.js.
 
 > [!TIP]
-> **Live Demo Web App**: You can run the AI Code Editor directly in your browser on Vercel at [ai-code-editor-client-af48xucpe-humaam-ahmeds-projects.vercel.app](ai-code-editor-client.vercel.app)! Note that for AI features online, you simply bring your own Google AI Studio API Key, keeping your usage cost-free and 100% private.
+> **Live Demo Web App**: You can run the AI Code Editor directly in your browser on Vercel at [ai-code-editor-client.vercel.app](https://ai-code-editor-client.vercel.app)! Note that for AI features online, you simply bring your own Google AI Studio API Key, keeping your usage cost-free and 100% private.
 
 Designed with a secure **Bring Your Own Key (BYOK)** architecture, this IDE operates with **zero remote backend AI costs** by validating and caching credentials strictly client-side via browser `localStorage` and routing streaming requests through a local CORS-free middleware server.
 
